@@ -3,77 +3,212 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>SketchUp Functional Tools – Model Optimization, Polygon Reduction & File Size Control</title>
-
-<meta name="description" content="Advanced SketchUp tools to optimize models, reduce polygons, compress textures, analyze layers, and improve 3D scene performance.">
-
-<meta name="keywords" content="sketchup polygon reducer tool, sketchup file size optimizer, sketchup texture compressor, sketchup model cleaner tool, sketchup export size estimator, sketchup scene optimizer">
-
 <meta name="google-site-verification" content="PkLa_ViOo6FAHpvh8SacceMb95o9tePRdrqLNBz9X1M" />
 
+<title>How to Reduce Polygons in SketchUp – Methods, Plugins & Poly Budget Calculator</title>
+<meta name="description" content="Complete guide to reducing polygons in SketchUp. Native methods (circle segments, geometry cleanup), best plugins (Skimp, Artisan, Polygon Cruncher), and a free Poly Budget Calculator for game engines, VR, and web use.">
+<link rel="canonical" href="https://franrivalbigprojects.github.io/sketchup-tools/reduce-polygons/">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Reduce Polygons in SketchUp",
+  "description": "Step-by-step guide to reducing polygon count in SketchUp using native tools and plugins.",
+  "step": [
+    { "@type": "HowToStep", "name": "Check your current polygon count", "text": "In SketchUp, go to Window > Model Info > Statistics and click 'Show nested components' to see total faces and edges." },
+    { "@type": "HowToStep", "name": "Reduce circle and arc segments", "text": "Select a circle or arc, right-click > Entity Info and reduce the number of segments. Default is 24; reducing to 8-12 saves 50-67% of edge geometry." },
+    { "@type": "HowToStep", "name": "Delete hidden geometry", "text": "Enable View > Hidden Geometry, select and delete unnecessary internal faces that accumulate from imports and boolean operations." },
+    { "@type": "HowToStep", "name": "Use a polygon reduction plugin", "text": "For complex imported models, use Skimp ($79), Artisan (free trial), or export to Blender and use its Decimate modifier for free polygon reduction." }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I reduce polygon count in SketchUp?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The fastest native methods: (1) Reduce circle/arc segments — select a circle, open Entity Info, lower segment count from 24 to 8-12. (2) Delete hidden geometry via View > Hidden Geometry. (3) Use Soften/Smooth Edges to merge coplanar faces. (4) For imported models with thousands of faces, use the Skimp plugin ($79) or export as OBJ to Blender and use the free Decimate modifier, then reimport." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the best plugin to reduce polygons in SketchUp?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Skimp is the most popular dedicated polygon reduction plugin for SketchUp ($79 one-time). It works inside SketchUp, handles complex imported models, and preserves UV maps. Artisan is better for organic sculpting. For free options: export to OBJ, use Blender's Decimate modifier, then reimport to SketchUp." }
+    },
+    {
+      "@type": "Question",
+      "name": "How many polygons should a SketchUp model have?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Target polygon counts depend on the end use. For SketchUp rendering (V-Ray, Enscape): under 2 million faces per scene. For game engines (Unity/Unreal): hero props 1,000-10,000 faces, background props 100-500. For web/AR: under 50,000 faces per model. For VR: total scene under 100,000 faces for 90fps. Use the Poly Budget Calculator on this page to get specific targets for your use case." }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #020617;
-    color: #e5e7eb;
-    margin: 0;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #0a0c0e;
+  --bg2:    #0f1218;
+  --bg3:    #141a22;
+  --border: #1c2630;
+  --border2:#24333f;
+  --text:   #d8e8f2;
+  --muted:  #4a7090;
+  --accent: #0ea5e9;
+  --accent2:#0284c7;
+  --green:  #22c55e;
+  --green-dim:#061606;
+  --orange: #f59e0b;
+  --orange-dim:#180e00;
+  --red:    #f87171;
+  --mono:   'JetBrains Mono', monospace;
+  --sans:   'Inter', sans-serif;
 }
 
-header {
-    background: linear-gradient(90deg, #2563eb, #22c55e);
-    padding: 30px;
-    text-align: center;
-}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.7; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 22px; }
 
-h1 {
-    margin: 0;
-    font-size: 2.5rem;
-}
+/* HEADER */
+header { background: var(--bg2); border-bottom: 3px solid var(--accent); padding: 46px 0 30px; }
+.breadcrumb { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.breadcrumb a { color: var(--muted); text-decoration: none; }
+h1 { font-size: clamp(22px, 4vw, 38px); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 12px; }
+h1 em { color: var(--accent); font-style: normal; }
+.byline { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.lead { font-size: 15px; color: var(--muted); max-width: 660px; line-height: 1.65; margin-bottom: 20px; }
+.header-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { font-family: var(--mono); font-size: 10px; padding: 3px 10px; border: 1px solid var(--border2); border-radius: 3px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.pill.hi { border-color: var(--accent); color: var(--accent); }
+.pill.green { border-color: var(--green); color: var(--green); }
 
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 20px;
-}
+/* NAV */
+.nav-bar { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+.nav-bar .container { display: flex; overflow-x: auto; }
+.nav-bar a { font-family: var(--mono); font-size: 11px; color: var(--muted); text-decoration: none; padding: 10px 14px; white-space: nowrap; border-bottom: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.04em; transition: color 0.15s, border-color 0.15s; }
+.nav-bar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
+/* SECTIONS */
+section { padding: 52px 0; border-bottom: 1px solid var(--border); }
+h2 { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: #fff; line-height: 1.2; }
+h2 em { color: var(--accent); font-style: normal; }
+.section-lead { color: var(--muted); font-size: 15px; margin-bottom: 28px; max-width: 680px; line-height: 1.7; }
+h3 { font-size: 18px; font-weight: 600; color: var(--text); margin: 36px 0 10px; padding-top: 4px; border-top: 1px solid var(--border); }
+h3:first-of-type { border-top: none; margin-top: 0; }
+h4 { font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+p { margin-bottom: 14px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+p:last-child { margin-bottom: 0; }
+code { font-family: var(--mono); font-size: 12px; background: var(--bg3); padding: 2px 6px; border-radius: 3px; color: var(--accent); }
+strong { color: var(--text); }
 
-.card {
-    background: #0f172a;
-    padding: 20px;
-    border-radius: 14px;
-    border: 1px solid #1e293b;
-    transition: 0.3s;
-}
+/* TIP BLOCKS */
+.tip-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.tip-list li { font-size: 14px; color: var(--muted); display: flex; gap: 10px; line-height: 1.65; }
+.tip-list li::before { content: '→'; color: var(--accent); font-family: var(--mono); font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+.tip-list li strong { color: var(--text); }
 
-.card:hover {
-    transform: translateY(-6px);
-    border-color: #2563eb;
-}
+/* METHOD BLOCKS */
+.method-block { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; margin-bottom: 14px; border-left: 4px solid; }
+.method-block.native  { border-left-color: var(--green); }
+.method-block.plugin  { border-left-color: var(--accent); }
+.method-block.export  { border-left-color: var(--orange); }
+.method-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+.method-badge { font-family: var(--mono); font-size: 9px; padding: 2px 8px; border-radius: 3px; }
+.badge-free { background: var(--green-dim); color: var(--green); border: 1px solid #1a4a28; }
+.badge-paid { background: var(--orange-dim); color: var(--orange); border: 1px solid #3a2200; }
+.method-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+.method-steps { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 6px; counter-reset: step-counter; }
+.method-steps li { font-size: 13px; color: var(--muted); display: flex; gap: 10px; }
+.method-steps li::before { counter-increment: step-counter; content: counter(step-counter)'.'; color: var(--accent); font-family: var(--mono); font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 18px; }
 
-a {
-    text-decoration: none;
-    color: #22c55e;
-    font-weight: bold;
-    display: inline-block;
-    margin-top: 10px;
-}
+/* PLUGIN TABLE */
+.plugin-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+.plugin-table { width: 100%; border-collapse: collapse; background: var(--bg2); font-size: 13px; }
+.plugin-table thead { background: var(--bg3); }
+.plugin-table thead th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 14px; text-align: left; color: var(--muted); white-space: nowrap; }
+.plugin-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.plugin-table tbody tr:last-child { border-bottom: none; }
+.plugin-table tbody tr:hover { background: var(--bg3); }
+.plugin-table td { padding: 10px 14px; color: var(--muted); }
+.td-plugin { font-weight: 600; color: var(--text); }
+.c-y { color: var(--green); } .c-n { color: #3a3a3a; } .c-p { color: var(--orange); }
 
-a:hover {
-    color: #4ade80;
-}
+/* TOOLS */
+.tool-wrap { background: var(--bg2); border: 1.5px solid var(--border2); border-radius: 10px; overflow: hidden; }
+.tool-head { background: var(--accent2); padding: 12px 20px; font-family: var(--mono); font-size: 12px; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+.tool-body { padding: 22px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
+.field select, .field input { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); font-family: var(--mono); font-size: 13px; padding: 9px 12px; border-radius: 5px; outline: none; transition: border-color 0.2s; }
+.field select:focus, .field input:focus { border-color: var(--accent); }
+.field-hint { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 4px; }
+.inp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 10px 22px; border-radius: 5px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.15s; border: none; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-sec { background: var(--bg3); border: 1px solid var(--border2); color: var(--muted); }
+.btn-sec:hover { border-color: var(--accent); color: var(--accent); }
 
-footer {
-    text-align: center;
-    padding: 20px;
-    border-top: 1px solid #1e293b;
-    margin-top: 40px;
-    font-size: 0.9rem;
+/* RESULT CARDS */
+.result-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 18px; }
+.result-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 14px; }
+.result-val { font-family: var(--mono); font-size: 22px; font-weight: 600; display: block; color: var(--accent); }
+.result-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px; }
+.result-note { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.reduction-bar-wrap { margin-top: 16px; }
+.rb-label { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.rb-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.rb-pct { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 40px; }
+.rb-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.rb-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+.rb-val { font-family: var(--mono); font-size: 12px; color: var(--text); min-width: 80px; text-align: right; }
+.verdict-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 14px; }
+.verdict-title { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+.verdict-text { font-size: 13px; color: var(--text); line-height: 1.65; }
+
+/* OBJ COUNTER */
+.obj-textarea { width: 100%; height: 120px; background: var(--bg); border: 1px solid var(--border2); color: var(--text); font-family: var(--mono); font-size: 12px; padding: 10px 12px; border-radius: 5px; outline: none; resize: vertical; line-height: 1.6; }
+.obj-textarea:focus { border-color: var(--accent); }
+.obj-textarea::placeholder { color: var(--muted); font-size: 11px; }
+
+/* INFO GRID */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 8px; }
+.info-block h3 { margin-top: 0; border-top: none; font-size: 15px; }
+
+/* TOOLS NAV */
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 10px; margin-top: 8px; }
+.tool-nav-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 7px; padding: 14px 16px; text-decoration: none; display: block; transition: border-color 0.15s; }
+.tool-nav-card:hover { border-color: var(--accent); }
+.tnc-name { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); display: block; margin-bottom: 3px; }
+.tnc-desc { font-size: 12px; color: var(--muted); }
+
+/* FAQ */
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-q { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 0; cursor: pointer; font-size: 14px; font-weight: 500; user-select: none; color: var(--text); }
+.faq-toggle { font-size: 20px; color: var(--accent); flex-shrink: 0; transition: transform 0.2s; }
+.faq-item.open .faq-toggle { transform: rotate(45deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.3s; font-size: 14px; color: var(--muted); line-height: 1.75; }
+.faq-item.open .faq-a { max-height: 500px; padding-bottom: 16px; }
+
+footer { border-top: 1px solid var(--border); padding: 26px 0; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer nav { display: flex; gap: 14px; flex-wrap: wrap; }
+footer nav a { color: var(--muted); text-decoration: none; }
+footer nav a:hover { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .inp-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  footer .container { flex-direction: column; }
 }
 </style>
 </head>
@@ -81,93 +216,488 @@ footer {
 <body>
 
 <header>
-    <h1>SketchUp Functional Tools</h1>
-    <p>Optimize models, reduce size and improve 3D performance</p>
+  <div class="container">
+    <p class="breadcrumb"><a href="../">SketchUp Tools</a> / Reduce Polygons</p>
+    <h1>How to Reduce Polygons<br>in <em>SketchUp</em></h1>
+    <p class="byline">Updated May 2026 &nbsp;·&nbsp; SketchUp 2024 & 2025 &nbsp;·&nbsp; Native methods, plugins & export workflow</p>
+    <p class="lead">Complete guide to reducing polygon count in SketchUp — from native segment editing to polygon reduction plugins (Skimp, Artisan) and the free Blender export workflow. Includes a Poly Budget Calculator for game engines, VR, and web AR.</p>
+    <div class="header-pills">
+      <span class="pill hi">Native methods</span>
+      <span class="pill hi">Plugin comparison</span>
+      <span class="pill green">Free Poly Budget Calculator</span>
+    </div>
+  </div>
 </header>
 
-<div class="container">
+<nav class="nav-bar">
+  <div class="container">
+    <a href="#why">Why Reduce</a>
+    <a href="#check">Check Count</a>
+    <a href="#methods">Methods</a>
+    <a href="#plugins">Plugins</a>
+    <a href="#calculator">Calculator</a>
+    <a href="#faq">FAQ</a>
+  </div>
+</nav>
 
-<section>
-<h2>SketchUp Model Optimization Toolkit</h2>
-<p>
-These SketchUp tools are designed for architects, designers, and 3D artists who need to optimize models,
-reduce file size, improve rendering performance, and clean complex scenes. Perfect for preparing assets
-for real-time rendering, export, or web-based visualization.
-</p>
+<!-- WHY REDUCE -->
+<section id="why">
+  <div class="container">
+    <h2>Why Reduce Polygons <em>in SketchUp?</em></h2>
+    <p class="section-lead">Every face (polygon) in a SketchUp model adds to file size, slows down the viewport, and increases rendering times. Understanding where polygons come from helps you target the right areas.</p>
+
+    <div class="info-grid">
+      <div class="info-block">
+        <h3>The most common sources of polygon bloat</h3>
+        <p>Circles and arcs are the #1 culprit — SketchUp represents them as flat-sided polygons. A default circle has 24 segments, meaning a simple cylinder has 48 faces just for the barrel. Import from 3D Warehouse is the #2 cause — models downloaded from the warehouse are often designed for rendering, not performance, and can have millions of unnecessary faces.</p>
+        <ul class="tip-list">
+          <li><strong>Circles/arcs:</strong> Default 24 segments × every cylinder/dome in model</li>
+          <li><strong>3D Warehouse imports:</strong> Often 10-50× more faces than needed for your purpose</li>
+          <li><strong>CAD imports (.dwg, .dxf):</strong> Precise engineering geometry, extremely high polygon count</li>
+          <li><strong>Hidden internal geometry:</strong> Boolean operations leave interior faces invisible but still counted</li>
+          <li><strong>Entourage models:</strong> People, trees, cars from the warehouse are notoriously heavy</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <h3>Performance impact by use case</h3>
+        <p>The acceptable polygon count varies dramatically based on what you're doing with the model. A model optimized for SketchUp rendering (Enscape, V-Ray) can have far more polygons than one destined for a game engine or real-time web viewer.</p>
+        <ul class="tip-list">
+          <li><strong>SketchUp viewport:</strong> Over 500,000 faces → slow orbit and pan</li>
+          <li><strong>Enscape / V-Ray rendering:</strong> Over 5 million faces → long render times</li>
+          <li><strong>Unity / Unreal Engine:</strong> Hero object should be under 10,000 faces</li>
+          <li><strong>Web AR (three.js, Babylon.js):</strong> Under 50,000 faces total per scene</li>
+          <li><strong>VR (Meta Quest, PCVR):</strong> Under 100,000 faces for 90fps on Quest</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </section>
 
-<section class="grid">
+<!-- CHECK COUNT -->
+<section id="check">
+  <div class="container">
+    <h2>How to Check Your <em>Polygon Count</em> in SketchUp</h2>
+    <p class="section-lead">Before optimizing, measure. SketchUp calls polygons "faces" in its statistics panel.</p>
 
-<div class="card">
-<h3>Component Counter</h3>
-<p>Count and analyze components within your model.</p>
-<a href="sketchup-tools-functional/component-counter">sketchup-tools-functional/component-counter</a>
-</div>
+    <h3>Using Model Info Statistics</h3>
+    <p>Go to <code>Window → Model Info → Statistics</code>. Click <strong>"Show nested components"</strong> to see the total face count across all groups and components, not just the top-level geometry. The key number is <strong>Faces</strong> — this is your polygon count. <strong>Edges</strong> will always be roughly 3× the face count for triangulated geometry.</p>
 
-<div class="card">
-<h3>Export Size Estimator</h3>
-<p>Estimate file size before exporting models.</p>
-<a href="sketchup-tools-functional/export-size-estimator">sketchup-tools-functional/export-size-estimator</a>
-</div>
+    <h3>Using the Entity Info Panel</h3>
+    <p>Select a specific component or group, then open <code>Window → Entity Info</code>. This shows the face and edge count for just that selection. Use this to identify which specific component is the heaviest. Sort by selecting different parts of the model — the heavy ones are usually immediately obvious in the Entity Info count.</p>
 
-<div class="card">
-<h3>File Size Optimizer</h3>
-<p>Reduce model size and remove unnecessary data.</p>
-<a href="sketchup-tools-functional/file-size-optimizer">sketchup-tools-functional/file-size-optimizer</a>
-</div>
+    <h3>The OBJ Polygon Counter (paste your OBJ data)</h3>
+    <p>If you've exported your model as OBJ, paste a section of it below to count faces instantly. OBJ files list faces as lines starting with <code>f</code>.</p>
 
-<div class="card">
-<h3>Layer Analyzer</h3>
-<p>Inspect layers and improve model organization.</p>
-<a href="sketchup-tools-functional/layer-analyzer">sketchup-tools-functional/layer-analyzer</a>
-</div>
-
-<div class="card">
-<h3>Model Cleaner</h3>
-<p>Remove unused elements and clean geometry.</p>
-<a href="sketchup-tools-functional/model-cleaner">sketchup-tools-functional/model-cleaner</a>
-</div>
-
-<div class="card">
-<h3>Polygon Reducer</h3>
-<p>Reduce polygon count for better performance.</p>
-<a href="sketchup-tools-functional/polygon-reducer">sketchup-tools-functional/polygon-reducer</a>
-</div>
-
-<div class="card">
-<h3>Scene Optimizer</h3>
-<p>Optimize scenes for rendering and real-time usage.</p>
-<a href="sketchup-tools-functional/scene-optimizer">sketchup-tools-functional/scene-optimizer</a>
-</div>
-
-<div class="card">
-<h3>Shadow Calculator</h3>
-<p>Calculate shadows and lighting impact.</p>
-<a href="sketchup-tools-functional/shadow-calculator">sketchup-tools-functional/shadow-calculator</a>
-</div>
-
-<div class="card">
-<h3>Texture Compressor</h3>
-<p>Compress textures to reduce memory usage.</p>
-<a href="sketchup-tools-functional/texture-compressor">sketchup-tools-functional/texture-compressor</a>
-</div>
-
+    <div class="tool-wrap" style="margin-top:14px;">
+      <div class="tool-head">
+        <span>// OBJ Polygon Counter — paste OBJ file content</span>
+      </div>
+      <div class="tool-body">
+        <div class="field">
+          <label>Paste OBJ content (or a section of it)</label>
+          <textarea class="obj-textarea" id="obj-input"
+            placeholder="# OBJ file&#10;v 1.0 0.0 0.0&#10;v 0.0 1.0 0.0&#10;v 0.0 0.0 1.0&#10;f 1 2 3&#10;f 1 3 4&#10;f 2 3 4&#10;..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="countOBJ()">Count Polygons</button>
+          <button class="btn btn-sec" onclick="loadOBJExample()">Load Example</button>
+        </div>
+        <div id="obj-result" style="display:none;margin-top:16px;">
+          <div class="result-row" id="obj-stats"></div>
+          <div class="verdict-box" id="obj-verdict"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
-<section>
-<h2>Why SketchUp Optimization Matters</h2>
-<p>
-Large and complex 3D models can slow down workflows and rendering pipelines.
-These tools help streamline models, improve performance, and ensure your assets
-are ready for production, visualization, or deployment.
-</p>
+<!-- METHODS -->
+<section id="methods">
+  <div class="container">
+    <h2>Methods to Reduce Polygons <em>in SketchUp</em></h2>
+    <p class="section-lead">From quickest (no plugins needed) to most powerful (external tools). Apply in this order — the native methods often solve 80% of the problem.</p>
+
+    <h3>Native SketchUp Methods (No Plugins)</h3>
+
+    <div class="method-block native">
+      <div class="method-title">1. Reduce Circle and Arc Segments <span class="method-badge badge-free">Free · Built-in</span></div>
+      <div class="method-desc">The single biggest win for most SketchUp models. Every circle is a polygon — fewer sides means fewer faces.
+        <ol class="method-steps">
+          <li>Select a circle or arc in your model</li>
+          <li>Open <code>Window → Entity Info</code></li>
+          <li>Change the <strong>Segments</strong> field — from 24 to 8 or 12</li>
+          <li>SketchUp rebuilds the arc/circle with fewer sides</li>
+          <li>Repeat for all circles throughout the model</li>
+        </ol>
+        <div style="margin-top:10px;font-size:13px;color:var(--muted);">Changing from 24 to 8 segments reduces a circle's edge count by 67%. A model with 100 cylinders (pipes, columns, furniture legs) can lose hundreds of thousands of faces this way.</div>
+      </div>
+    </div>
+
+    <div class="method-block native">
+      <div class="method-title">2. Delete Hidden Geometry <span class="method-badge badge-free">Free · Built-in</span></div>
+      <div class="method-desc">Boolean operations and CAD imports leave interior faces that are invisible but still counted.
+        <ol class="method-steps">
+          <li>Enable <code>View → Hidden Geometry</code> (dotted lines appear)</li>
+          <li>Select the model or component</li>
+          <li>Use <code>Edit → Select All</code> then manually deselect visible geometry</li>
+          <li>Or use <code>Edit → Intersect Faces → With Model</code> to expose and then delete internal faces</li>
+          <li>Disable View Hidden Geometry when done</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="method-block native">
+      <div class="method-title">3. Use Soften/Smooth Edges to Merge Coplanar Faces <span class="method-badge badge-free">Free · Built-in</span></div>
+      <div class="method-desc">SketchUp sometimes creates multiple coplanar triangles where a single face should exist. Softening edges merges them visually.
+        <ol class="method-steps">
+          <li>Select the geometry you want to simplify</li>
+          <li>Open <code>Window → Soften Edges</code></li>
+          <li>Drag the Angle slider right — higher angle merges more edges</li>
+          <li>Check "Smooth normals" to reduce jagged shading artifacts</li>
+        </ol>
+        <div style="margin-top:10px;font-size:13px;color:var(--muted);">Note: this doesn't actually delete geometry — it just hides edges. Use with caution since it affects how the model renders in some exporters.</div>
+      </div>
+    </div>
+
+    <div class="method-block native">
+      <div class="method-title">4. Replace Heavy Components with Low-Poly Alternatives <span class="method-badge badge-free">Free</span></div>
+      <div class="method-desc">The most effective strategy for entourage (people, trees, cars): replace the entire heavy component with a purpose-built low-poly version.
+        <ol class="method-steps">
+          <li>Identify the heaviest components via Entity Info</li>
+          <li>Search 3D Warehouse specifically for "low poly" versions (e.g. "low poly tree", "low poly person")</li>
+          <li>Use SketchUp's native 2D people (face-me components) for background figures — near-zero polygon cost</li>
+          <li>For vegetation: use Skatter plugin's billboard faces instead of 3D tree models</li>
+        </ol>
+      </div>
+    </div>
+
+    <h3>Plugin-Based Reduction (For Imported Complex Models)</h3>
+
+    <div class="method-block plugin">
+      <div class="method-title">Skimp — Polygon Reduction Inside SketchUp <span class="method-badge badge-paid">$79 one-time</span></div>
+      <div class="method-desc">The most popular dedicated polygon reducer for SketchUp. Works directly inside SketchUp without leaving the application. Simplifies meshes using quadric error metrics — preserves shape while reducing face count.
+        <ol class="method-steps">
+          <li>Install Skimp from skimp4sketchup.com ($79, one-time license)</li>
+          <li>Select the component or group to reduce</li>
+          <li>Open Skimp from Extensions menu</li>
+          <li>Drag the reduction slider — preview updates in real time</li>
+          <li>Apply when happy with the result</li>
+        </ol>
+        <div style="margin-top:10px;font-size:13px;color:var(--muted);">Best for: imported OBJ, FBX, DAE models with 100,000+ faces that need to stay in SketchUp format. Preserves UV maps and texture coordinates.</div>
+      </div>
+    </div>
+
+    <div class="method-block plugin">
+      <div class="method-title">Artisan — Organic Sculpting + Subdivision <span class="method-badge badge-paid">~$39</span></div>
+      <div class="method-desc">Primarily a sculpting tool, but Artisan's "Simplify" tool reduces polygon count on organic shapes (terrain, curved surfaces). Better than Skimp for terrain models.
+        <ol class="method-steps">
+          <li>Install Artisan from Extensions Warehouse (~$39)</li>
+          <li>Select terrain or organic mesh</li>
+          <li>Extensions → Artisan → Simplify</li>
+          <li>Set target face count or reduction percentage</li>
+        </ol>
+        <div style="margin-top:10px;font-size:13px;color:var(--muted);">Best for: terrain, landscape, and organic curved surface reduction. Not ideal for hard-surface architectural models.</div>
+      </div>
+    </div>
+
+    <h3>Export Workflow — Free Reduction via Blender</h3>
+
+    <div class="method-block export">
+      <div class="method-title">Export to Blender → Decimate → Reimport <span class="method-badge badge-free">Free</span></div>
+      <div class="method-desc">Blender's Decimate modifier is a professional-grade polygon reducer — free, powerful, and available to everyone. The tradeoff is it requires leaving SketchUp.
+        <ol class="method-steps">
+          <li>In SketchUp: <code>File → Export → 3D Model → OBJ</code></li>
+          <li>Open Blender (free at blender.org) → Import OBJ</li>
+          <li>Select the imported object → Properties panel → Add Modifier → Decimate</li>
+          <li>Set Ratio (0.5 = 50% reduction, 0.1 = 90% reduction) and Apply</li>
+          <li>Export from Blender as OBJ or DAE</li>
+          <li>Reimport to SketchUp: <code>File → Import</code></li>
+        </ol>
+        <div style="margin-top:10px;font-size:13px;color:var(--muted);">Best for: dramatic reductions (10-90%) where you don't need to preserve SketchUp groups/layers. Free but requires the export-edit-import round trip. UV maps may need manual correction after decimation.</div>
+      </div>
+    </div>
+  </div>
 </section>
 
-</div>
+<!-- PLUGINS COMPARISON -->
+<section id="plugins">
+  <div class="container">
+    <h2>SketchUp Polygon Reduction <em>Plugins Compared</em></h2>
+    <p class="section-lead">The main options for polygon reduction in SketchUp — what each does, what it costs, and when to use it.</p>
+
+    <div class="plugin-table-wrap">
+      <table class="plugin-table">
+        <thead>
+          <tr><th>Plugin / Tool</th><th>Cost</th><th>Works in SketchUp</th><th>Preserves UVs</th><th>Organic shapes</th><th>Hard-surface</th><th>Best for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="td-plugin">Skimp</td><td>$79 one-time</td><td><span class="c-y">✓ Yes</span></td><td><span class="c-y">✓ Yes</span></td><td><span class="c-p">⚡ Partial</span></td><td><span class="c-y">✓ Yes</span></td><td>Imported models, staying in SketchUp</td></tr>
+          <tr><td class="td-plugin">Artisan</td><td>~$39</td><td><span class="c-y">✓ Yes</span></td><td><span class="c-p">⚡ Partial</span></td><td><span class="c-y">✓ Excellent</span></td><td><span class="c-n">✗ Limited</span></td><td>Terrain, landscape, organic forms</td></tr>
+          <tr><td class="td-plugin">Polygon Cruncher</td><td>$79–$199</td><td><span class="c-n">✗ Standalone app</span></td><td><span class="c-y">✓ Yes</span></td><td><span class="c-y">✓ Yes</span></td><td><span class="c-y">✓ Yes</span></td><td>Batch processing many files</td></tr>
+          <tr><td class="td-plugin">Blender Decimate</td><td>Free</td><td><span class="c-n">✗ Export needed</span></td><td><span class="c-p">⚡ May break</span></td><td><span class="c-y">✓ Yes</span></td><td><span class="c-y">✓ Yes</span></td><td>Maximum reduction, no budget</td></tr>
+          <tr><td class="td-plugin">Segment reduction (native)</td><td>Free</td><td><span class="c-y">✓ Yes</span></td><td>N/A</td><td><span class="c-n">✗ Circles only</span></td><td><span class="c-y">✓ Yes</span></td><td>Quick wins on circles/arcs</td></tr>
+          <tr><td class="td-plugin">SimLab Composer</td><td>Free–$99</td><td><span class="c-n">✗ Export needed</span></td><td><span class="c-y">✓ Yes</span></td><td><span class="c-p">⚡ Partial</span></td><td><span class="c-y">✓ Yes</span></td><td>Architectural viz pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- POLY BUDGET CALCULATOR -->
+<section id="calculator">
+  <div class="container">
+    <h2>Polygon Budget <em>Calculator</em></h2>
+    <p class="section-lead">Not sure how many polygons you need to target? Enter your use case and current count to get specific reduction targets and method recommendations.</p>
+
+    <div class="tool-wrap">
+      <div class="tool-head">
+        <span>// Poly Budget Calculator — find your target polygon count</span>
+        <button class="btn-sec btn" style="font-size:10px;padding:4px 10px;" onclick="resetCalc()">Reset</button>
+      </div>
+      <div class="tool-body">
+        <div class="inp-grid">
+          <div class="field">
+            <label>Current polygon (face) count</label>
+            <input type="number" id="calc-current" placeholder="e.g. 850000" min="0" step="1000" value="">
+            <div class="field-hint">Window → Model Info → Statistics → Faces</div>
+          </div>
+          <div class="field">
+            <label>Target use case</label>
+            <select id="calc-usecase">
+              <option value="">— Select use case —</option>
+              <option value="sketchup_viewport">SketchUp viewport (fast navigation)</option>
+              <option value="enscape">Enscape real-time rendering</option>
+              <option value="vray">V-Ray / rendering (quality)</option>
+              <option value="unity_hero">Unity / Unreal — hero prop</option>
+              <option value="unity_bg">Unity / Unreal — background prop</option>
+              <option value="unity_env">Unity / Unreal — full environment</option>
+              <option value="web_ar">Web viewer / AR (three.js, Babylon.js)</option>
+              <option value="vr_quest">VR — Meta Quest (standalone)</option>
+              <option value="vr_pcvr">VR — PCVR (SteamVR, Index)</option>
+              <option value="gltf_web">glTF web export (Shapespark, Modelo)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Number of instances in scene</label>
+            <input type="number" id="calc-instances" placeholder="1" min="1" value="1">
+            <div class="field-hint">How many copies of this model appear?</div>
+          </div>
+          <div class="field">
+            <label>Priority</label>
+            <select id="calc-priority">
+              <option value="balanced">Balanced (quality vs performance)</option>
+              <option value="performance">Performance first (lower targets)</option>
+              <option value="quality">Quality first (higher targets)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcBudget()">Calculate Poly Budget</button>
+
+        <div id="calc-result" style="display:none;margin-top:20px;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS NAV -->
+<section style="padding:40px 0;border-bottom:1px solid var(--border);">
+  <div class="container">
+    <h2>SketchUp <em>Tools</em></h2>
+    <div class="tools-grid">
+      <a href="build-size-estimator/index.html" class="tool-nav-card"><span class="tnc-name">Build Size Estimator</span><span class="tnc-desc">Estimate model file size</span></a>
+      <a href="lightmap-calculator/index.html" class="tool-nav-card"><span class="tnc-name">Lightmap Calculator</span><span class="tnc-desc">Optimize rendering lightmaps</span></a>
+      <a href="texture-optimizer/index.html" class="tool-nav-card"><span class="tnc-name">Texture Optimizer</span><span class="tnc-desc">Texture size recommendations</span></a>
+      <a href="lod-calculator/index.html" class="tool-nav-card"><span class="tnc-name">LOD Distance Calculator</span><span class="tnc-desc">Level-of-detail distances</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <h2>Reduce Polygons in SketchUp – <em>FAQ</em></h2>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">How do I reduce polygon count in SketchUp without plugins?<span class="faq-toggle">+</span></div>
+      <div class="faq-a">Three native methods: (1) Reduce circle and arc segments — select any circle, open Entity Info (Window → Entity Info), change the Segments value from 24 to 8 or 12. (2) Delete hidden geometry — enable View → Hidden Geometry to reveal interior faces left by boolean operations, then delete them. (3) Use Soften/Smooth Edges (Window → Soften Edges) to merge coplanar triangles. For heavily imported models (CAD files, 3D Warehouse), these native methods may not be sufficient and you'll need Skimp or the Blender Decimate workflow.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What is the best free way to reduce polygons in SketchUp?<span class="faq-toggle">+</span></div>
+      <div class="faq-a">The best free method is the Blender Decimate workflow: (1) Export from SketchUp as OBJ (File → Export → 3D Model → .obj). (2) Import into Blender (free at blender.org). (3) Select the object, go to the Properties panel → wrench icon → Add Modifier → Decimate. (4) Set Ratio (0.25 = 75% reduction) and Apply. (5) Export as OBJ from Blender and reimport to SketchUp. This is free and gives professional-quality results, but requires the round-trip and may not preserve SketchUp layers/groups.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">How many polygons is too many in SketchUp?<span class="faq-toggle">+</span></div>
+      <div class="faq-a">There's no universal limit — it depends on your hardware and use case. As general guidelines: under 200,000 faces = smooth navigation on most computers. 200,000–1,000,000 = may get sluggish, especially with textures. Over 1,000,000 faces = expect lag on most machines. The SketchUp official recommendation is to keep models as lean as possible. Check Window → Model Info → Statistics to see your current count. The Poly Budget Calculator on this page gives specific targets based on your end use (game engine, rendering, VR, web).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Does Skimp work with SketchUp Free (web version)?<span class="faq-toggle">+</span></div>
+      <div class="faq-a">No. Skimp (and most SketchUp plugins) require SketchUp Pro or SketchUp Go (subscription). The web-based SketchUp Free does not support extensions. If you're on SketchUp Free and need polygon reduction, the Blender export workflow is your best free option — it works regardless of which SketchUp version you have, since it operates on the exported OBJ file rather than inside SketchUp.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">How do I reduce polygons in a 3D Warehouse model I downloaded?<span class="faq-toggle">+</span></div>
+      <div class="faq-a">3D Warehouse models often have extremely high polygon counts because they're designed for visual fidelity, not performance. Steps: (1) After importing, check the face count in Entity Info by selecting the component. (2) For models under 50,000 faces, try reducing circle segments and hidden geometry deletion. (3) For models over 50,000 faces, use Skimp ($79) to reduce them directly in SketchUp. (4) For free reduction, export as OBJ and use Blender's Decimate modifier. (5) As a workaround, search 3D Warehouse for "low poly" versions of the same object — many popular items have community-made low-poly alternatives.</div>
+    </div>
+  </div>
+</section>
 
 <footer>
-<p>© 2026 SketchUp Tools – Optimize models, reduce size, improve performance</p>
+  <div class="container">
+    <span>How to Reduce Polygons in SketchUp — May 2026</span>
+    <nav>
+      <a href="#methods">Methods</a>
+      <a href="#plugins">Plugins</a>
+      <a href="#calculator">Calculator</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+  </div>
 </footer>
 
+<!-- ================================================================
+     JAVASCRIPT — ES5, NO ARROW FUNCTIONS
+     ================================================================ -->
+<script>
+
+/* ── POLY BUDGET DATA ── */
+var BUDGETS = {
+  sketchup_viewport: { name:'SketchUp Viewport', target:200000, per_instance:200000, unit:'faces total', desc:'For smooth navigation and orbit in SketchUp. Models over 500K faces cause lag on most hardware.' },
+  enscape:           { name:'Enscape Rendering',  target:1000000, per_instance:500000, unit:'faces total', desc:'Enscape handles large scenes but degrades above 5M faces. Keep entourage under 50K per element.' },
+  vray:              { name:'V-Ray Rendering',     target:5000000, per_instance:2000000, unit:'faces total', desc:'V-Ray is less sensitive to polygon count than real-time engines. Main concern is render time, not viewport.' },
+  unity_hero:        { name:'Unity/Unreal Hero Prop', target:8000, per_instance:8000, unit:'faces per object', desc:'A hero prop the player interacts with closely. Budget 5K-15K faces. Use LODs for distance.' },
+  unity_bg:          { name:'Unity/Unreal Background Prop', target:500, per_instance:500, unit:'faces per object', desc:'Background/dressing props. Stay under 500-1,000 faces. These appear in large numbers.' },
+  unity_env:         { name:'Unity/Unreal Environment', target:100000, per_instance:100000, unit:'faces total scene', desc:'Total scene budget for a game level. Budget tightly — each object competes for the same pool.' },
+  web_ar:            { name:'Web AR / Three.js',   target:50000, per_instance:30000, unit:'faces total scene', desc:'Web-based 3D viewers need to run on mobile browsers. Keep total scene under 50K for smooth loading.' },
+  vr_quest:          { name:'Meta Quest VR',        target:100000, per_instance:50000, unit:'faces total scene', desc:'Quest renders at 90fps for two eyes. Very tight budget — aim for under 50K in complex scenes.' },
+  vr_pcvr:           { name:'PCVR (SteamVR)',       target:500000, per_instance:200000, unit:'faces total scene', desc:'High-end PC VR is less constrained than Quest. Still needs 90fps — keep draw calls low.' },
+  gltf_web:          { name:'glTF Web Export',      target:100000, per_instance:100000, unit:'faces total model', desc:'For Shapespark, Modelo, or glTF viewers. Aim for under 100K for fast load times over 4G.' }
+};
+
+var PRIORITY_MULTS = { balanced:1.0, performance:0.6, quality:1.5 };
+
+function calcBudget() {
+  var current   = parseInt(document.getElementById('calc-current').value) || 0;
+  var usecase   = document.getElementById('calc-usecase').value;
+  var instances = parseInt(document.getElementById('calc-instances').value) || 1;
+  var priority  = document.getElementById('calc-priority').value;
+
+  if (!usecase) { alert('Please select a use case.'); return; }
+
+  var budget = BUDGETS[usecase];
+  var mult   = PRIORITY_MULTS[priority];
+  var target = Math.round(budget.per_instance * mult);
+  var total  = target * instances;
+  var needed = current > 0 ? Math.max(0, Math.round(((current - target) / current) * 100)) : 0;
+  var isOver = current > 0 && current > target;
+
+  /* Build result */
+  var statsHtml = '';
+  statsHtml += rcCard(fmtN(target), budget.unit, '');
+  if (current > 0) {
+    statsHtml += rcCard(fmtN(current), 'current faces', '');
+    statsHtml += rcCard((isOver ? '-' : '') + needed + '%', 'reduction needed', '');
+    if (instances > 1) { statsHtml += rcCard(fmtN(total), 'total budget (' + instances + ' instances)', ''); }
+  }
+
+  /* Reduction scenarios */
+  var scenariosHtml = '';
+  if (current > 0 && isOver) {
+    var reductions = [25, 50, 75, 90];
+    scenariosHtml = '<div class="reduction-bar-wrap"><div class="rb-label">After reducing by:</div>';
+    for (var i = 0; i < reductions.length; i++) {
+      var r = reductions[i];
+      var after = Math.round(current * (1 - r/100));
+      var barW  = Math.min(100, Math.round((after / (current || 1)) * 100));
+      var color = after <= target ? 'var(--green)' : 'var(--accent)';
+      scenariosHtml += '<div class="rb-row">'
+        + '<span class="rb-pct">-' + r + '%</span>'
+        + '<div class="rb-track"><div class="rb-fill" style="width:' + barW + '%;background:' + color + '"></div></div>'
+        + '<span class="rb-val">' + fmtN(after) + ' faces ' + (after <= target ? '✓' : '') + '</span>'
+        + '</div>';
+    }
+    scenariosHtml += '</div>';
+  }
+
+  /* Method recommendation */
+  var method = '';
+  if (current === 0) { method = 'Enter your current polygon count to get method recommendations.'; }
+  else if (!isOver)  { method = 'Your current count (' + fmtN(current) + ') is within budget for ' + budget.name + '. No reduction needed.'; }
+  else if (needed < 20) { method = 'A ' + needed + '% reduction is minor. Try reducing circle segments and deleting hidden geometry — no plugin needed.'; }
+  else if (needed < 50) { method = 'A ' + needed + '% reduction is moderate. Reduce circle segments first, then use Skimp or the Blender Decimate workflow for remaining geometry.'; }
+  else if (needed < 75) { method = 'A ' + needed + '% reduction is significant. Use Blender\'s Decimate modifier (free) set to ' + (100 - needed) + '% ratio, or Skimp inside SketchUp.'; }
+  else                  { method = 'A ' + needed + '% reduction is aggressive. Use Blender Decimate set to ' + (100 - needed) + '% ratio. At this level, consider rebuilding key geometry at a lower poly count.'; }
+
+  var html = '<div class="result-row">' + statsHtml + '</div>';
+  if (scenariosHtml) { html += scenariosHtml; }
+  html += '<div class="verdict-box"><div class="verdict-title">Recommendation</div><div class="verdict-text">' + budget.desc + '<br><br>' + method + '</div></div>';
+
+  document.getElementById('calc-result').innerHTML = html;
+  document.getElementById('calc-result').style.display = 'block';
+}
+
+function rcCard(val, label, note) {
+  return '<div class="result-card"><span class="result-val">' + val + '</span><span class="result-label">' + label + '</span>' + (note ? '<div class="result-note">' + note + '</div>' : '') + '</div>';
+}
+
+function resetCalc() {
+  document.getElementById('calc-current').value = '';
+  document.getElementById('calc-usecase').value = '';
+  document.getElementById('calc-instances').value = '1';
+  document.getElementById('calc-priority').value = 'balanced';
+  document.getElementById('calc-result').style.display = 'none';
+}
+
+/* ── OBJ COUNTER ── */
+function countOBJ() {
+  var raw = document.getElementById('obj-input').value;
+  if (!raw.trim()) { alert('Paste some OBJ content first.'); return; }
+
+  var lines = raw.split('\n');
+  var faces = 0, verts = 0, normals = 0, uvs = 0, objects = 0;
+  for (var i = 0; i < lines.length; i++) {
+    var l = lines[i].trim();
+    if (l.charAt(0) === 'f' && (l.charAt(1) === ' ' || l.charAt(1) === '\t')) {
+      /* Count triangles in this face: a face with N vertices = N-2 triangles */
+      var parts = l.slice(2).trim().split(/\s+/).filter(function(p) { return p.length > 0; });
+      faces += Math.max(1, parts.length - 2);
+    } else if (l.slice(0,2) === 'v ') { verts++; }
+    else if (l.slice(0,3) === 'vn ') { normals++; }
+    else if (l.slice(0,3) === 'vt ') { uvs++; }
+    else if (l.charAt(0) === 'o' || l.charAt(0) === 'g') { objects++; }
+  }
+
+  var verdict = '';
+  if (faces === 0) { verdict = 'No face lines (f ...) found. Make sure you pasted a valid OBJ file — face lines start with "f".'; }
+  else if (faces < 1000) { verdict = 'Very low poly — suitable for any use case including mobile VR and web AR.'; }
+  else if (faces < 10000) { verdict = 'Low poly — good for game engine hero props and web viewers.'; }
+  else if (faces < 100000) { verdict = 'Medium poly — fine for SketchUp rendering, may need reduction for game engines.'; }
+  else if (faces < 1000000) { verdict = 'High poly — OK for rendering, needs significant reduction for real-time use.'; }
+  else { verdict = 'Very high poly — SketchUp will likely lag with this model. Reduction strongly recommended.'; }
+
+  var statsHtml = rcCard(fmtN(faces), 'faces (triangles)', '')
+    + rcCard(fmtN(verts), 'vertices', '')
+    + (uvs ? rcCard(fmtN(uvs), 'UV coords', '') : '')
+    + (objects ? rcCard(fmtN(objects), 'objects/groups', '') : '');
+
+  document.getElementById('obj-stats').innerHTML = statsHtml;
+  document.getElementById('obj-verdict').innerHTML = '<div class="verdict-title">Assessment</div><div class="verdict-text">' + verdict + '</div>';
+  document.getElementById('obj-result').style.display = 'block';
+}
+
+function loadOBJExample() {
+  var example = '# SketchUp OBJ Export\n# Faces: 12 (simple cube)\no Cube\nv 1.0 -1.0 -1.0\nv 1.0 -1.0 1.0\nv -1.0 -1.0 1.0\nv -1.0 -1.0 -1.0\nv 1.0 1.0 -1.0\nv 1.0 1.0 1.0\nv -1.0 1.0 1.0\nv -1.0 1.0 -1.0\nvt 0.0 0.0\nvt 1.0 0.0\nvt 1.0 1.0\nvt 0.0 1.0\nvn 0.0 -1.0 0.0\nvn 0.0 1.0 0.0\nvn 1.0 0.0 0.0\nvn -1.0 0.0 0.0\nvn 0.0 0.0 1.0\nvn 0.0 0.0 -1.0\nf 1/1/1 2/2/1 3/3/1\nf 1/1/1 3/3/1 4/4/1\nf 5/1/2 8/4/2 7/3/2\nf 5/1/2 7/3/2 6/2/2\nf 1/1/3 5/2/3 6/3/3\nf 1/1/3 6/3/3 2/4/3\nf 2/1/5 6/2/5 7/3/5\nf 2/1/5 7/3/5 3/4/5\nf 3/1/4 7/2/4 8/3/4\nf 3/1/4 8/3/4 4/4/4\nf 5/1/6 1/2/6 4/3/6\nf 5/1/6 4/3/6 8/4/6';
+  document.getElementById('obj-input').value = example;
+  countOBJ();
+}
+
+function fmtN(n) { return Number(n).toLocaleString('en'); }
+
+function toggleFaq(el) {
+  var item = el.parentNode;
+  var isOpen = item.className.indexOf('open') !== -1;
+  var all = document.querySelectorAll('.faq-item');
+  for (var i = 0; i < all.length; i++) { all[i].className = 'faq-item'; }
+  if (!isOpen) { item.className = 'faq-item open'; }
+}
+
+</script>
 </body>
 </html>
